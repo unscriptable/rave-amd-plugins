@@ -1,6 +1,6 @@
 {
   "name": "rave-amd-plugins",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Adds AMD plugin syntax compatibility to RaveJS.",
   "main": "rave.js",
   "rave": "rave",
