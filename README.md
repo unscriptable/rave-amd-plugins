@@ -3,15 +3,15 @@
 rave-amd-plugins is a RaveJS extension that adds the ability to use AMD plugins.
 
 When using an ES6 loader, AMD plugins aren't the most efficient way to load
-non-module resources.  This RaveJS extension allows existing code bases that
-use AMD plugins to start using RaveJS without refactoring.
+non-module resources.  However, refactoring to use ES6 loaders can be a hassle.
+rave-amd-plugins allows existing AMD code bases to start using RaveJS without
+immediate refactoring.
 
-rave-amd-plugins is not intended to be used directly.  It is meant to be used
-by RaveJS extensions that install AMD plugins. rave-amd-plugins should be
-installed via these other RaveJS extensions.
+**Note**: rave-amd-plugins is not intended to be used directly.  It is meant
+to be used and installed by other RaveJS extensions that provide AMD plugins.
 
 For instance, installing any of the following RaveJS extensions will install
-and use rave-amd-plugins:
+rave-amd-plugins:
 
 * [rave-curl-css](https://github.com/unscriptable/rave-curl-css)
 * [rave-curl-domReady](https://github.com/unscriptable/rave-curl-domReady)
