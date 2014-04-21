@@ -7,7 +7,8 @@ var beget = require('rave/lib/beget');
 var createRequire = require('rave/lib/createRequire');
 var normalizeCjs = require('rave/pipeline/normalizeCjs');
 var path = require('rave/lib/path');
-
+var uid = require('rave/lib/uid');
+var metadata = require('rave/lib/metadata');
 var overrideIf = require('rave/lib/overrideIf');
 
 exports.create = create;
@@ -25,7 +26,7 @@ exports.pluginFilter = pluginFilter;
 function create (context) {
 
 	var pipeline = {
-		normalize: createNormalize(context, createPluginMapper(context)),
+		normalize: createNormalize(createPluginMapper(context)),
 		locate: locate,
 		fetch: fetch,
 		translate: translate,
@@ -45,22 +46,22 @@ function createPluginMapper (context) {
 	}
 }
 
-function createNormalize (context, mapper) {
+function createNormalize (mapper) {
 	return function normalize (name, refName) {
-		var parsed, pluginName, normalizeResource, resourceName;
+		var parsed, pluginName, plugin, resourceName;
 
 		parsed = parsePluginName(name);
 		pluginName = mapper(normalizeCjs(parsed.plugin, refName));
+		plugin = require(pluginName); // must be sync!
 
-		// If plugin is not loaded, throw to be deterministic.
-		if (!context.loader.has(pluginName)) {
-			throw new Error('AMD plugin must be preloaded: ' + pluginName);
+		if (plugin.normalize) {
+			resourceName = plugin.normalize(parsed.resource, function (name) {
+				return normalizeCjs(name, refName);
+			}) || ''; // dojo plugins may return falsey values
 		}
-
-		normalizeResource = context.loader.get(pluginName).normalize
-			|| normalizeCjs;
-
-		resourceName = normalizeResource(parsed.resource, refName);
+		else {
+			resourceName = normalizeCjs(parsed.resource, refName);
+		}
 
 		return pluginName + '!' + resourceName;
 	}
@@ -78,24 +79,20 @@ function translate (load) {
 
 function createInstantiate (context) {
 	return function instantiate (load) {
-		var loader, parsed, config, require;
+		var parsed, config, req, plugin;
 
-		loader = context.loader;
 		parsed = parsePluginName(load.name);
 		config = beget(load.metadata.rave);
-		require = createPluginRequire(loader, context);
+		req = createPluginRequire(context, context);
+		plugin = require(parsed.plugin);
 
-		return loader.import(parsed.plugin).then(loadResource);
-
-		function loadResource (plugin) {
-			return new Promise(function (resolve, reject) {
-				callback.error = reject;
-				plugin.load(parsed.resource, require, callback, config);
-				function callback (value) {
-					resolve(createFactory(value));
-				}
-			});
-		}
+		return new Promise(function (resolve, reject) {
+			callback.error = reject;
+			plugin.load(uid.parse(parsed.resource).name, req, callback, config);
+			function callback (value) {
+				resolve(createFactory(value));
+			}
+		});
 	};
 }
 function parsePluginName (name) {
@@ -106,18 +103,36 @@ function parsePluginName (name) {
 	};
 }
 
-function createPluginRequire (loader, config) {
-	var require = createRequire(loader, ''); // no relative require!
+function createPluginRequire (context, config) {
+	// no relative require unless TC39 spec allows refName to be passed to pipeline
+	var refName = '';
+	var require = createRequire(context.loader, refName);
+
 	// plugins have an additional API function: require.toUrl()
 	require.toUrl = function (id) {
+		var abs, pkgDescriptor;
+
 		// ensure it's normalized
-		var abs = loader.normalize(id);
+		abs = normalizeCjs(id, refName);
+		if (path.isAbsUrl(abs)) return abs;
+
+		pkgDescriptor = metadata.findDepPackage(context.packages, '', abs);
+		if (pkgDescriptor) {
+			abs = uid.parse(abs).modulePath;
+			if (pkgDescriptor.location) {
+				abs = path.joinPaths(location, abs);
+			}
+		}
+		if (path.isAbsUrl(abs)) return abs;
+
 		// join to baseUrl
-		if (!path.isAbsUrl(abs) && config.baseUrl) {
+		if (config.baseUrl) {
 			abs = path.joinPaths(config.baseUrl, abs);
 		}
+
 		return abs;
 	};
+
 	return require;
 }
 
