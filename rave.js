@@ -20,6 +20,7 @@ exports.createInstantiate = createInstantiate;
 exports.parsePluginName = parsePluginName;
 exports.createPluginRequire = createPluginRequire;
 exports.createPluginMapper = createPluginMapper;
+exports.getPluginConfig = getPluginConfig;
 exports.createFactory = createFactory;
 exports.pluginFilter = pluginFilter;
 
@@ -42,8 +43,15 @@ function create (context) {
 
 function createPluginMapper (context) {
 	return function (name) {
-		return context.amdPluginMap && context.amdPluginMap[name] || name;
+		var config = getPluginConfig(context, name);
+		return config && config[name] || name;
 	}
+}
+
+function getPluginConfig (context, name) {
+	var config = context.amdPluginMap && context.amdPluginMap[name];
+	if (typeof config === 'string') config = { name: config };
+	return config;
 }
 
 function createNormalize (mapper) {
@@ -82,9 +90,9 @@ function createInstantiate (context) {
 		var parsed, config, req, plugin;
 
 		parsed = parsePluginName(load.name);
-		config = beget(load.metadata.rave);
 		req = createPluginRequire(context, context);
 		plugin = require(parsed.plugin);
+		config = getPluginConfig(load.metadata.rave, plugin);
 
 		return new Promise(function (resolve, reject) {
 			callback.error = reject;
