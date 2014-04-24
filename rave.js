@@ -35,8 +35,9 @@ function create (context) {
 	};
 
 	return {
+		pluginFilter: pluginFilter,
 		pipeline: function (loader) {
-			return overrideIf(pluginFilter, loader, pipeline);
+			return overrideIf(this.pluginFilter, loader, pipeline);
 		}
 	};
 }
@@ -44,7 +45,7 @@ function create (context) {
 function createPluginMapper (context) {
 	return function (name) {
 		var config = getPluginConfig(context, name);
-		return config && config[name] || name;
+		return config && config.name || name;
 	}
 }
 
@@ -90,9 +91,9 @@ function createInstantiate (context) {
 		var parsed, config, req, plugin;
 
 		parsed = parsePluginName(load.name);
-		req = createPluginRequire(context, context);
 		plugin = require(parsed.plugin);
-		config = getPluginConfig(load.metadata.rave, plugin);
+		config = getPluginConfig(context, plugin) || {};
+		req = createPluginRequire(context, config);
 
 		return new Promise(function (resolve, reject) {
 			callback.error = reject;
@@ -154,5 +155,5 @@ function createFactory (value) {
 
 function pluginFilter (load) {
 	var plugin = typeof load === 'string' ? load : load.name;
-	return !!parsePluginName(plugin).plugin;
+	return parsePluginName(plugin).plugin;
 }
