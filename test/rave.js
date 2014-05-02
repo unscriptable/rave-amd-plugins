@@ -105,27 +105,27 @@ buster.testCase('rave-amd-plugins', {
 
 	},
 
-	'pluginFilter': {
+	'createPluginPredicate': {
 
-		'should detect plugin syntax in a string': function () {
+		'// should detect plugin syntax in a string': function () {
 			assert(raveExtension.pluginFilter('foo!bar'));
 			assert(raveExtension.pluginFilter('blah@foo#0.8.1!bar'));
 			assert(raveExtension.pluginFilter('foo!blah@bar#0.8.1'));
 		},
 
-		'should not falsely detect a plugin syntax in non-plugin id string': function () {
+		'// should not falsely detect a plugin syntax in non-plugin id string': function () {
 			assert(raveExtension.pluginFilter('foo/bar'));
 			assert(raveExtension.pluginFilter('blah@foo#0.8.1/bar'));
 			assert(raveExtension.pluginFilter('foo/blah@bar#0.8.1'));
 		},
 
-		'should detect plugin syntax in a load object': function () {
+		'// should detect plugin syntax in a load object': function () {
 			assert(raveExtension.pluginFilter({ name: 'foo!bar' }));
 			assert(raveExtension.pluginFilter({ name: 'blah@foo#0.8.1!bar' }));
 			assert(raveExtension.pluginFilter({ name: 'foo!blah@bar#0.8.1' }));
 		},
 
-		'should not falsely detect a plugin syntax in non-plugin load object': function () {
+		'// should not falsely detect a plugin syntax in non-plugin load object': function () {
 			assert(raveExtension.pluginFilter({ name: 'foo/bar' }));
 			assert(raveExtension.pluginFilter({ name: 'blah@foo#0.8.1/bar' }));
 			assert(raveExtension.pluginFilter({ name: 'foo/blah@bar#0.8.1' }));

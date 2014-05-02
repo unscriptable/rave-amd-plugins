@@ -9,7 +9,6 @@ var normalizeCjs = require('rave/pipeline/normalizeCjs');
 var path = require('rave/lib/path');
 var uid = require('rave/lib/uid');
 var metadata = require('rave/lib/metadata');
-var overrideIf = require('rave/lib/overrideIf');
 
 exports.create = create;
 exports.createNormalize = createNormalize;
@@ -22,46 +21,61 @@ exports.createPluginRequire = createPluginRequire;
 exports.createPluginMapper = createPluginMapper;
 exports.getPluginConfig = getPluginConfig;
 exports.createFactory = createFactory;
-exports.pluginFilter = pluginFilter;
+exports.createPluginPredicate = createPluginPredicate;
 
 function create (context) {
 
-	var pipeline = {
-		normalize: createNormalize(createPluginMapper(context)),
-		locate: locate,
-		fetch: fetch,
-		translate: translate,
-		instantiate: createInstantiate(context)
-	};
+	if (!context.amdPluginMap) context.amdPluginMap = {};
 
 	return {
-		pluginFilter: pluginFilter,
-		pipeline: function (loader) {
-			return overrideIf(this.pluginFilter, loader, pipeline);
-		}
+		load: [
+			{
+				// amd plugins should use a pattern and possibly an additional
+				// predicate:
+				pattern: /!/,
+				predicate: createPluginPredicate(context.amdPluginMap),
+				hooks: {
+					normalize: createNormalize(createPluginMapper(context)),
+					locate: locate,
+					fetch: fetch,
+					translate: translate,
+					instantiate: createInstantiate(context)
+				}
+			}
+		]
 	};
 }
 
 function createPluginMapper (context) {
+	var map = context.amdPluginMap;
 	return function (name) {
-		var config = getPluginConfig(context, name);
-		return config && config.name || name;
+		var info = map[name];
+		if (typeof info === 'undefined') {
+			info = {
+				name: info,
+				module: es5Transform.fromLoader(context.loader.get(info))
+			}
+		}
+		return info;
 	}
 }
 
 function getPluginConfig (context, name) {
-	var config = context.amdPluginMap && context.amdPluginMap[name];
-	if (typeof config === 'string') config = { name: config };
-	return config;
+	// TODO:
+	return {};
 }
 
 function createNormalize (mapper) {
 	return function normalize (name, refName) {
-		var parsed, pluginName, plugin, resourceName;
+		var parsed, info, plugin, pluginName, resourceName;
 
 		parsed = parsePluginName(name);
-		pluginName = mapper(normalizeCjs(parsed.plugin, refName));
-		plugin = require(pluginName); // must be sync!
+		// bail early if this isn't a plugin-based name
+		if (!parsed.plugin) return name;
+
+		info = mapper(normalizeCjs(parsed.plugin, refName));
+		plugin = info.module;
+		pluginName = info.name;
 
 		if (plugin.normalize) {
 			resourceName = plugin.normalize(parsed.resource, function (name) {
@@ -93,7 +107,7 @@ function createInstantiate (context) {
 		parsed = parsePluginName(load.name);
 		plugin = require(parsed.plugin);
 		config = getPluginConfig(context, plugin) || {};
-		req = createPluginRequire(context, config);
+		req = createPluginRequire(context);
 
 		return new Promise(function (resolve, reject) {
 			callback.error = reject;
@@ -104,6 +118,7 @@ function createInstantiate (context) {
 		});
 	};
 }
+
 function parsePluginName (name) {
 	var parts = name.split('!', 2);
 	return {
@@ -112,7 +127,7 @@ function parsePluginName (name) {
 	};
 }
 
-function createPluginRequire (context, config) {
+function createPluginRequire (context) {
 	// no relative require unless TC39 spec allows refName to be passed to pipeline
 	var refName = '';
 	var require = createRequire(context.loader, refName);
@@ -135,8 +150,8 @@ function createPluginRequire (context, config) {
 		if (path.isAbsUrl(abs)) return abs;
 
 		// join to baseUrl
-		if (config.baseUrl) {
-			abs = path.joinPaths(config.baseUrl, abs);
+		if (context.baseUrl) {
+			abs = path.joinPaths(context.baseUrl, abs);
 		}
 
 		return abs;
@@ -153,7 +168,9 @@ function createFactory (value) {
 	}
 }
 
-function pluginFilter (load) {
-	var plugin = typeof load === 'string' ? load : load.name;
-	return parsePluginName(plugin).plugin;
+function createPluginPredicate (pluginMap) {
+	return function (load) {
+		var plugin = parsePluginName(load.name).plugin;
+		return plugin && (plugin in pluginMap);
+	}
 }
