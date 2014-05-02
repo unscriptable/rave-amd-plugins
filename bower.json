@@ -1,27 +1,36 @@
 {
-  "name": "rave-amd-plugins",
-  "version": "0.0.2",
-  "authors": [
-    "unscriptable <john@unscriptable.com>"
-  ],
-  "description": "Adds AMD plugin syntax compatibility to RaveJS.",
-  "main": "rave.js",
-  "rave": "rave",
-  "moduleType": [
-    "node"
-  ],
-  "keywords": [
-    "rave-extension",
-    "rave",
-    "amd",
-    "plugin"
-  ],
-  "license": "MIT",
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ]
+	"name": "rave-amd-plugins",
+	"version": "0.1.0",
+	"description": "Adds AMD plugin syntax compatibility to RaveJS.",
+	"moduleType": [
+		"node"
+	],
+	"main": "rave.js",
+	"rave": "rave",
+	"keywords": [
+		"rave-extension",
+		"rave",
+		"amd",
+		"plugin"
+	],
+	"dependencies": {
+		"rave": "~0.1"
+	},
+	"license": "MIT",
+	"homepage": "https://github.com/unscriptable/rave-amd-plugins",
+	"authors": [
+		"John Hann (http://unscriptable.com)",
+		"Brian Cavalier (http://hovercraftstudios.com)"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git@github.com:unscriptable/rave-amd-plugins.git"
+	},
+	"ignore": [
+		"**/.*",
+		"node_modules",
+		"bower_components",
+		"test",
+		"tests"
+	]
 }
