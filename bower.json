@@ -22,10 +22,6 @@
 		"John Hann (http://unscriptable.com)",
 		"Brian Cavalier (http://hovercraftstudios.com)"
 	],
-	"repository": {
-		"type": "git",
-		"url": "git@github.com:unscriptable/rave-amd-plugins.git"
-	},
 	"ignore": [
 		"**/.*",
 		"node_modules",
