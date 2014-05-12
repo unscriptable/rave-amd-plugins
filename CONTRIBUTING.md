@@ -16,7 +16,7 @@ GitHub's excellent [help documentation][] first.
 ## Search GitHub issues first; create an issue if necessary
 
 Is there already an issue that addresses your concern?  Do a bit of searching
-in our [issue tracker][] to see if you can find something similar. If not,
+in our issue tracker to see if you can find something similar. If not,
 consider creating a new issue for discussion before submitting a pull request
 unless the change is truly trivial, e.g. typo fixes, etc.
 
@@ -101,7 +101,6 @@ issue a new pull request when asked to make changes.
 
 
 [help documentation]: http://help.github.com/send-pull-requests
-[issue tracker]: https://github.com/cujojs/rest/issues
 [mailing list]: https://groups.google.com/forum/#!forum/cujojs
 [fork-and-edit]: https://github.com/blog/844-forking-with-the-edit-button
 [commit guidelines section of Pro Git]: http://progit.org/book/ch5-2.html#commit_guidelines
