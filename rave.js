@@ -52,7 +52,7 @@ function createPluginMapper (context) {
 		var info = map[name];
 		if (typeof info === 'undefined') {
 			info = {
-				name: info,
+				name: name,
 				module: es5Transform.fromLoader(context.loader.get(info))
 			}
 		}
