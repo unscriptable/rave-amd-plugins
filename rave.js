@@ -110,18 +110,19 @@ function translate (load) {
 
 function createInstantiate (context, mapper) {
 	return function instantiate (load) {
-		var parsed, config, req, plugin;
+		var parsed, plugin, config, req, loader;
 
 		parsed = parsePluginName(load.name);
 		plugin = mapper(parsed.plugin).module;
 		config = getPluginConfig(context, plugin) || {};
 		req = createPluginRequire(context);
+		loader = context.loader;
 
 		return new Promise(function (resolve, reject) {
 			callback.error = reject;
 			plugin.load(uid.parse(parsed.resource).name, req, callback, config);
 			function callback (value) {
-				resolve(createFactory(value));
+				resolve(createFactory(loader, value));
 			}
 		});
 	};
