@@ -24,8 +24,11 @@ exports.createFactory = createFactory;
 exports.createPluginPredicate = createPluginPredicate;
 
 function create (context) {
+	var mapper;
 
 	if (!context.amdPluginMap) context.amdPluginMap = {};
+
+	mapper = createPluginMapper(context);
 
 	return {
 		load: [
@@ -35,11 +38,11 @@ function create (context) {
 				pattern: /!/,
 				predicate: createPluginPredicate(context.amdPluginMap),
 				hooks: {
-					normalize: createNormalize(createPluginMapper(context)),
+					normalize: createNormalize(mapper),
 					locate: locate,
 					fetch: fetch,
 					translate: translate,
-					instantiate: createInstantiate(context)
+					instantiate: createInstantiate(context, mapper)
 				}
 			}
 		]
@@ -50,10 +53,15 @@ function createPluginMapper (context) {
 	var map = context.amdPluginMap;
 	return function (name) {
 		var info = map[name];
+		// Attempt to create a mapping just in time. Plugin module must be
+		// pre-loaded and module id must be normalized.
 		if (typeof info === 'undefined') {
 			info = {
 				name: name,
-				module: es5Transform.fromLoader(context.loader.get(info))
+				module: es5Transform.fromLoader(context.loader.get(name))
+			};
+			if (!info.module) {
+				throw new Error('Plugin not found for ' + name);
 			}
 		}
 		return info;
@@ -100,12 +108,12 @@ function translate (load) {
 	return load.source;
 }
 
-function createInstantiate (context) {
+function createInstantiate (context, mapper) {
 	return function instantiate (load) {
 		var parsed, config, req, plugin;
 
 		parsed = parsePluginName(load.name);
-		plugin = require(parsed.plugin);
+		plugin = mapper(parsed.plugin).module;
 		config = getPluginConfig(context, plugin) || {};
 		req = createPluginRequire(context);
 
@@ -160,10 +168,10 @@ function createPluginRequire (context) {
 	return require;
 }
 
-function createFactory (value) {
+function createFactory (loader, value) {
 	return {
 		execute: function () {
-			return new Module(es5Transform.toLoader(value));
+			return loader.newModule(es5Transform.toLoader(value));
 		}
 	}
 }
