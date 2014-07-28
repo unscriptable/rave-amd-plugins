@@ -172,7 +172,8 @@ function createPluginRequire (context) {
 function createFactory (loader, value) {
 	return {
 		execute: function () {
-			return loader.newModule(es5Transform.toLoader(value));
+//			return loader.newModule(es5Transform.toLoader(value));
+			return new Module(es5Transform.toLoader(value));
 		}
 	}
 }
