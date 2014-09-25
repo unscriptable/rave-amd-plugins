@@ -1,6 +1,6 @@
 {
 	"name": "rave-amd-plugins",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "Adds AMD plugin syntax compatibility to RaveJS.",
 	"moduleType": [
 		"node"
@@ -14,7 +14,7 @@
 		"plugin"
 	],
 	"dependencies": {
-		"rave": "~0.3"
+		"rave": "~0.4"
 	},
 	"license": "MIT",
 	"homepage": "https://github.com/unscriptable/rave-amd-plugins",
